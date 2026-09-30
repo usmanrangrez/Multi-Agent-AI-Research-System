@@ -2,6 +2,7 @@ import json
 
 from agents.reader import reader_agent
 from agents.search import search_agent
+from agents.writer import extract_report, write_report
 from rich import print
 
 
@@ -106,7 +107,14 @@ def run_research(question: str):
             }
         )
 
-    return reader_results
+    writer_result = write_report(
+        question,
+        reader_results,
+    )
+
+    report = extract_report(writer_result)
+
+    return report
 
 
 if __name__ == "__main__":
