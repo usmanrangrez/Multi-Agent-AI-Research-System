@@ -1,6 +1,16 @@
-def main():
-    print("Hello from multi-aget-reserach!")
+from pprint import pprint
 
+from agents.search import search_agent
 
-if __name__ == "__main__":
-    main()
+result = search_agent.invoke(
+    {
+        "messages": [
+            {
+                "role": "user",
+                "content": "What are the ways to earn money by using AI in 2026?"
+            }
+        ]
+    }
+)
+
+pprint(result)
