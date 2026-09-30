@@ -4,7 +4,7 @@ from tools.web_reader import read_webpage
 
 load_dotenv()
 reader_agent = create_agent(
-    model="groq:openai/gpt-oss-20b",
+    model="google_genai:gemini-3.5-flash-lite",
     tools=[read_webpage],
     system_prompt=(
         "You are a research reader agent. "
