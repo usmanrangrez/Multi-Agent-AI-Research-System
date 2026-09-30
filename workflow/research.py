@@ -1,5 +1,6 @@
 import json
 
+from agents.critic import critic_agent, critique_report
 from agents.reader import reader_agent
 from agents.search import search_agent
 from agents.writer import extract_report, write_report
@@ -47,7 +48,7 @@ def extract_findings(reader_result: dict) -> str:
 
 def run_research(question: str):
 
-    # 1. Ask the Search Agent to find sources
+    # 1. Search
     search_result = search_agent.invoke(
         {
             "messages": [
@@ -62,7 +63,7 @@ def run_research(question: str):
     print("\nSEARCH RESULT:")
     print(search_result)
 
-    # 2. Find the result produced by the search_web tool
+    # 2. Find search tool message
     search_message = next(
         message
         for message in search_result["messages"]
@@ -72,21 +73,16 @@ def run_research(question: str):
     print("\nSEARCH MESSAGE:")
     print(search_message)
 
-    print(
-        "Type of search_message.content:",
-        type(search_message.content),
-    )
-
-    # 3. Convert the tool message back into Python data
+    # 3. Convert JSON → Python
     search_results = json.loads(search_message.content)
 
-    # 4. Keep only the source information we need
+    # 4. Extract sources
     sources = extract_sources(search_results)
 
     print("\nSOURCES:")
     print(sources)
 
-    # 5. Read every source
+    # 5. Read sources
     reader_results = []
 
     for source in sources:
@@ -107,6 +103,7 @@ def run_research(question: str):
             }
         )
 
+    # 6. Writer
     writer_result = write_report(
         question,
         reader_results,
@@ -114,11 +111,41 @@ def run_research(question: str):
 
     report = extract_report(writer_result)
 
+    # 7. Critic + revision loop
+    max_revisions = 3
+
+    for revision in range(max_revisions):
+
+        critic_result = critique_report(
+            question,
+            reader_results,
+            report,
+        )
+
+        print(f"\nCRITIC RESULT - Revision {revision}:")
+
+        print(critic_result)
+
+        if critic_result.approved:
+            print("\nREPORT APPROVED")
+            break
+
+        print("\nREPORT REJECTED")
+        print("Revising report...")
+
+        writer_result = write_report(
+            question,
+            reader_results,
+            previous_report=report,
+            critic_feedback=critic_result.feedback,
+        )
+
+        report = extract_report(writer_result)
+
     return report
 
-
 if __name__ == "__main__":
-    results = run_research("What are the latest developments in RAG?")
+    results = run_research("What are the benefits of using CAG for LLMs?")
 
-    print("\nREADER RESULTS:")
+    print("\nFINAL RESEARCH REPORT:")
     print(results)
