@@ -82,8 +82,8 @@ The Python code in `workflow/research.py` orchestrates the agents explicitly, so
 ### Install
 
 ```bash
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/usmanrangrez/Multi-Agent-AI-Research-System
+cd —
 uv sync
 ```
 
