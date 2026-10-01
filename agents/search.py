@@ -5,7 +5,7 @@ from tools.search import search_web
 load_dotenv()
 
 search_agent = create_agent(
-    model="groq:openai/gpt-oss-20b",
+    model="google_genai:gemini-3.5-flash-lite",
     tools=[search_web],
     system_prompt=(
         "You are a research search agent."

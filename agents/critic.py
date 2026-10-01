@@ -8,7 +8,7 @@ load_dotenv()
 
 
 critic_agent = create_agent(
-    model="groq:openai/gpt-oss-120b",
+    model="google_genai:gemini-3.5-flash-lite",
     system_prompt=(
         "You are a research critic agent. "
         "Your job is to evaluate a research draft for accuracy, "
@@ -49,41 +49,3 @@ def critique_report(
     )
 
     return critic_result["structured_response"]
-
-
-    draft = """
-    RAG combines retrieval with generation.
-    It allows an LLM to use external information when answering questions.
-    """
-
-    findings = """
-    RAG systems retrieve relevant documents and provide them as context
-    to a language model before generation.
-    """
-
-    prompt = f"""
-    Research findings:
-
-    {findings}
-
-    Draft:
-
-    {draft}
-
-    Evaluate the draft against the research findings.
-    """
-
-    result = critic_agent.invoke(
-        {
-            "messages": [
-                {
-                    "role": "user",
-                    "content": prompt,
-                }
-            ]
-        }
-    )
-
-    critic_result = result["structured_response"]
-
-    print(critic_result)    

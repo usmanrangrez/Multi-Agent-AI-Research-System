@@ -6,7 +6,7 @@ load_dotenv()
 
 
 writer_agent = create_agent(
-    model="groq:openai/gpt-oss-120b",
+    model="google_genai:gemini-3.5-flash-lite",
     system_prompt=(
         "You are a research writer agent. "
         "You will receive research findings collected from multiple sources. "
@@ -39,15 +39,15 @@ def write_report(
         for result in research_results
     )
 
-    print(
-        f"[bold green]Writing research report for question:[/bold green] "
-        f"{question}"
-    )
+    # print(
+    #     f"[bold green]Writing research report for question:[/bold green] "
+    #     f"{question}"
+    # )
 
-    print(
-        f"[bold blue]Research findings from sources:[/bold blue]\n"
-        f"{research_text}"
-    )
+    # print(
+    #     f"[bold blue]Research findings from sources:[/bold blue]\n"
+    #     f"{research_text}"
+    # )
 
     if previous_report and critic_feedback:
 

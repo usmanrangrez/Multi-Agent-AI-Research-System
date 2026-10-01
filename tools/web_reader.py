@@ -7,15 +7,19 @@ from langchain_core.tools import tool
 def read_webpage(url: str) -> str:
     """Fetch a webpage and extract its readable text."""
 
-    response = requests.get(
-        url,
-        timeout=10,
-        headers={
-            "User-Agent": "Mozilla/5.0"
-        },
-    )
+    try:
+        response = requests.get(
+            url,
+            timeout=10,
+            headers={
+                "User-Agent": "Mozilla/5.0"
+            },
+        )
 
-    response.raise_for_status()
+        response.raise_for_status()
+
+    except requests.RequestException as e:
+        return f"Unable to read webpage: {url}\nReason: {e}"
 
     soup = BeautifulSoup(response.text, "html.parser")
 
