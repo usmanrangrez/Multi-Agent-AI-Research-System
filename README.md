@@ -60,6 +60,10 @@ The Python code in `workflow/research.py` orchestrates the agents explicitly, so
 │   ├── reader.py           # reader agent
 │   ├── writer.py           # writer agent + prompt builder
 │   └── critic.py           # critic agent (structured output)
+├── prompts/                # all prompt text (system prompts, message templates, strict policy)
+│   ├── search.py  reader.py  writer.py  critic.py
+├── config/
+│   └── settings.py         # models, limits, retries, defaults
 ├── tools/
 │   ├── search.py           # Tavily search tool
 │   └── web_reader.py       # webpage fetch + text extraction tool
@@ -83,7 +87,7 @@ The Python code in `workflow/research.py` orchestrates the agents explicitly, so
 
 ```bash
 git clone https://github.com/usmanrangrez/Multi-Agent-AI-Research-System
-cd —
+cd --
 uv sync
 ```
 

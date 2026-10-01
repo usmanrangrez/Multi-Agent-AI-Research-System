@@ -1,27 +1,24 @@
+from config.settings import WRITER_MODEL
 from dotenv import load_dotenv
 from langchain.agents import create_agent
+from prompts.writer import (
+    WRITER_SYSTEM_PROMPT,
+    build_writer_message,
+    format_research,
+)
 from rich import print
+from rich.markup import escape
 
 load_dotenv()
 
-
 writer_agent = create_agent(
-    model="google_genai:gemini-3.5-flash-lite",
-    system_prompt=(
-        "You are a research writer agent. "
-        "You will receive research findings collected from multiple sources. "
-        "Synthesize the findings into a clear, structured research report. "
-        "Use only the information provided in the research findings. "
-        "Do not invent facts. "
-        "When sources disagree or information is uncertain, make that clear."
-    ),
+    model=WRITER_MODEL,
+    system_prompt=WRITER_SYSTEM_PROMPT,
 )
 
 
 def extract_report(writer_result: dict) -> str:
-
     final_message = writer_result["messages"][-1]
-
     return final_message.content
 
 
@@ -31,54 +28,26 @@ def write_report(
     previous_report: str | None = None,
     critic_feedback: list[str] | None = None,
 ):
+    research_text = format_research(research_results)
 
-    research_text = "\n\n".join(
-        f"Source: {result['title']}\n"
-        f"URL: {result['url']}\n"
-        f"Findings:\n{result['findings']}"
-        for result in research_results
+    # escape(): web text containing "[/x]" would crash rich's markup parser
+    print(
+        f"[bold green]Writing research report for question:[/bold green] "
+        f"{escape(question)}"
+    )
+    print(
+        f"[bold blue]Research findings from sources:[/bold blue]\n"
+        f"{escape(research_text)}"
     )
 
-    # print(
-    #     f"[bold green]Writing research report for question:[/bold green] "
-    #     f"{question}"
-    # )
+    content = build_writer_message(
+        question,
+        research_text,
+        previous_report=previous_report,
+        critic_feedback=critic_feedback,
+    )
 
-    # print(
-    #     f"[bold blue]Research findings from sources:[/bold blue]\n"
-    #     f"{research_text}"
-    # )
-
-    if previous_report and critic_feedback:
-
-        feedback_text = "\n".join(
-            f"- {feedback}"
-            for feedback in critic_feedback
-        )
-
-        content = (
-            f"Research question: {question}\n\n"
-            f"Research findings from multiple sources:\n\n"
-            f"{research_text}\n\n"
-            f"Previous draft:\n\n"
-            f"{previous_report}\n\n"
-            f"Critic feedback:\n\n"
-            f"{feedback_text}\n\n"
-            "Revise the previous draft using the critic feedback. "
-            "Keep the useful parts of the previous draft, "
-            "fix the identified problems, and use only the provided "
-            "research findings."
-        )
-
-    else:
-
-        content = (
-            f"Research question: {question}\n\n"
-            f"Research findings from multiple sources:\n\n"
-            f"{research_text}"
-        )
-
-    writer_result = writer_agent.invoke(
+    return writer_agent.invoke(
         {
             "messages": [
                 {
@@ -88,5 +57,3 @@ def write_report(
             ]
         }
     )
-
-    return writer_result

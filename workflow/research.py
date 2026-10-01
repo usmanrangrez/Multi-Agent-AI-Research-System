@@ -6,23 +6,19 @@ from agents.critic import critique_report
 from agents.reader import reader_agent
 from agents.search import search_agent
 from agents.writer import extract_report, write_report
+from config.settings import DEFAULT_MAX_REVISIONS, RETRY_ATTEMPTS
+from prompts.critic import STRICT_REVIEW_POLICY
+from prompts.reader import reader_user_message
+from prompts.search import search_user_message
 from tools.search import search_web
 
 EventCallback = Callable[[dict], None]
 
 
-STRICT_REVIEW_POLICY = (
-    "REVIEW POLICY (strict): approve ONLY if ALL of these hold, otherwise "
-    "set approved=false and list each failed point as concrete feedback:\n"
-    "1. Every factual claim names the source it came from (by title or URL).\n"
-    "2. The report ends with a 'Sources' section listing every source URL used.\n"
-    "3. Any disagreement, uncertainty or weak evidence between sources is stated.\n"
-    "4. The report has a short 'Limitations' section.\n"
-    "5. No vague claims without a number, example or source behind them."
-)
 
-
+# ============================================================
 # HELPERS
+# ============================================================
 
 def to_text(content) -> str:
     """Flatten LangChain content (str / list of blocks / message) into plain text."""
@@ -61,7 +57,7 @@ TRANSIENT_MARKERS = (
 )
 
 
-def with_retry(func, *args, step: str, on_event=None, attempts: int = 4, **kwargs):
+def with_retry(func, *args, step: str, on_event=None, attempts: int = RETRY_ATTEMPTS, **kwargs):
     """Call func(*args, **kwargs); retry transient network/API errors with backoff."""
     for attempt in range(1, attempts + 1):
         try:
@@ -76,7 +72,9 @@ def with_retry(func, *args, step: str, on_event=None, attempts: int = 4, **kwarg
             time.sleep(wait)
 
 
+# ============================================================
 # SEARCH
+# ============================================================
 
 def parse_search_results(search_result: dict) -> list[dict] | None:
     """Pull the search_web tool output out of the agent's messages (None if not found)."""
@@ -109,10 +107,7 @@ def search_sources(question: str, on_event: EventCallback | None) -> list[dict]:
                 "messages": [
                     {
                         "role": "user",
-                        "content": (
-                            "You MUST call the search_web tool to research "
-                            f"this question: {question}"
-                        ),
+                        "content": search_user_message(question),
                     }
                 ]
             }
@@ -153,7 +148,9 @@ def extract_sources(search_results: list[dict]) -> list[dict]:
     return sources
 
 
+# ============================================================
 # READER
+# ============================================================
 
 def read_source(question: str, source: dict) -> dict:
     return reader_agent.invoke(
@@ -161,12 +158,7 @@ def read_source(question: str, source: dict) -> dict:
             "messages": [
                 {
                     "role": "user",
-                    "content": (
-                        f"Research question: {question}\n\n"
-                        f"Read this source:\n"
-                        f"Title: {source['title']}\n"
-                        f"URL: {source['url']}"
-                    ),
+                    "content": reader_user_message(question, source),
                 }
             ]
         }
@@ -177,12 +169,14 @@ def extract_findings(reader_result: dict) -> str:
     return to_text(reader_result["messages"][-1].content).strip()
 
 
+# ============================================================
 # MAIN PIPELINE
+# ============================================================
 
 def run_research(
     question: str,
     on_event: EventCallback | None = None,
-    max_revisions: int = 3,
+    max_revisions: int = DEFAULT_MAX_REVISIONS,
     strict_critic: bool = False,
 ) -> dict:
     """Search -> Read -> Write -> Critic loop.

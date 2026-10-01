@@ -1,3 +1,4 @@
+from config.settings import SEARCH_MAX_RESULTS
 from langchain_core.tools import tool
 from langchain_tavily import TavilySearch
 
@@ -6,11 +7,9 @@ from langchain_tavily import TavilySearch
 def search_web(query: str) -> list[dict]:
     """Search the web for current information about a topic."""
 
-    search = TavilySearch(max_results=5)
+    search = TavilySearch(max_results=SEARCH_MAX_RESULTS)
 
-    result = search.invoke({
-        "query": query
-    })
+    result = search.invoke({"query": query})
 
     return [
         {

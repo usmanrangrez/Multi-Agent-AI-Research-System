@@ -7,6 +7,7 @@ import time
 import traceback
 
 import streamlit as st
+from config.settings import DEFAULT_MAX_REVISIONS
 from workflow.research import run_research
 
 # ============================================================
@@ -587,7 +588,7 @@ with st.sidebar:
         "Max critic rounds",
         min_value=1,
         max_value=5,
-        value=3,
+        value=DEFAULT_MAX_REVISIONS,
         help="How many times the Critic can review the report. More rounds cost more time and tokens.",
     )
 

@@ -1,16 +1,13 @@
+from config.settings import READER_MODEL
 from dotenv import load_dotenv
 from langchain.agents import create_agent
+from prompts.reader import READER_SYSTEM_PROMPT
 from tools.web_reader import read_webpage
 
 load_dotenv()
+
 reader_agent = create_agent(
-    model="google_genai:gemini-3.5-flash-lite",
+    model=READER_MODEL,
     tools=[read_webpage],
-    system_prompt=(
-        "You are a research reader agent. "
-        "When given a webpage URL, use the read_webpage tool "
-        "to retrieve the webpage content. "
-        "Extract the information relevant to the user's research question. "
-        "Do not invent information that is not present in the webpage."
-    ),
+    system_prompt=READER_SYSTEM_PROMPT,
 )
